@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Manajemen Persediaan</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>MANAJEMEN PERSEDIAAN</h1>
+
+<p id="userInfo"></p>
+
+<h2>Tambah Makanan</h2>
+
+<form action="/tambah" method="POST">
+
+<input type="text" name="nama_makanan" placeholder="Nama Makanan" required>
+
+<input type="number" name="stok" placeholder="Stok" required>
+
+<input type="number" name="harga" placeholder="Harga" required>
+
+<button type="submit">Simpan</button>
+
+</form>
+
+<h2>DATA PERSEDIAAN MAKANAN</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>NAMA MAKANAN</th>
+<th>STOK</th>
+<th>HARGA</th>
+<th>AKSI</th>
+</tr>
+</thead>
+
+<tbody id="tabelMakanan"></tbody>
+
+</table>
+
+<script>
+
+fetch("/data")
+.then(res=>res.json())
+.then(result=>{
+
+document.getElementById("userInfo").innerHTML =
+"Halo "+result.user+" ("+result.role+") | <a href='/logout'>Logout</a>"
+
+let html=""
+
+result.data.forEach(item=>{
+
+html+=`
+<tr>
+<td>${item.nama_makanan}</td>
+<td>${item.stok}</td>
+<td>${item.harga}</td>
+<td><a href="/hapus/${item.id}">Hapus</a></td>
+</tr>
+`
+
+})
+
+document.getElementById("tabelMakanan").innerHTML=html
+
+})
+
+</script>
+
+</body>
+</html>

@@ -1,77 +1,96 @@
-const express = require("express");
-const router = express.Router();
-const db = require("../config/database");
+const express = require("express")
+const router = express.Router()
+const path = require("path")
 
-function checkLogin(req, res, next) {
-    if (req.session.user) next();
-    else res.redirect("/login");
+const db = require("../config/database")
+
+function checkLogin(req,res,next){
+if(req.session.user){
+next()
+}else{
+res.redirect("/login")
+}
 }
 
-router.get("/login", (req, res) => {
-    if (req.session.user) return res.redirect("/");
-    res.render("login", { error: null });
-});
+router.get("/login",(req,res)=>{
+res.sendFile(path.join(__dirname,"../login.html"))
+})
 
-router.post("/login", (req, res) => {
-    const { username, password } = req.body;
+router.post("/login",(req,res)=>{
 
-    db.query(
-        "SELECT * FROM users WHERE username = ? AND password = ?",
-        [username, password],
-        (err, results) => {
-            if (err) throw err;
+const username = req.body.username
+const password = req.body.password
 
-            if (results.length > 0) {
-                req.session.user = results[0].username;
-                req.session.role = results[0].role;
-                res.redirect("/");
-            } else {
-                res.render("login", { error: "Username atau Password salah!" });
-            }
-        }
-    );
-});
+db.query(
+"SELECT * FROM users WHERE username=? AND password=?",
+[username,password],
+(err,result)=>{
 
-router.get("/", checkLogin, (req, res) => {
-    db.query("SELECT * FROM makanan", (err, results) => {
-        if (err) throw err;
+if(result && result.length>0){
 
-        res.render("index", {
-            makanan: results,
-            user: req.session.user,
-            role: req.session.role
-        });
-    });
-});
+req.session.user=result[0].username
+req.session.role=result[0].role
 
-router.post("/tambah", checkLogin, (req, res) => {
-    const { nama_makanan, stok, harga } = req.body;
+res.redirect("/")
 
-    db.query(
-        "INSERT INTO makanan (nama_makanan, stok, harga) VALUES (?,?,?)",
-        [nama_makanan, stok, harga],
-        () => {
-            res.redirect("/");
-        }
-    );
-});
+}else{
 
-router.get("/hapus/:id", checkLogin, (req, res) => {
+res.send("Login gagal")
 
-    if (req.session.role !== "admin") {
-        return res.send("<script>alert('Akses Ditolak!');window.location='/'</script>");
-    }
+}
 
-    db.query("DELETE FROM makanan WHERE id=?", [req.params.id], () => {
-        res.redirect("/");
-    });
+})
 
-});
+})
 
-router.get("/logout", (req, res) => {
-    req.session.destroy(() => {
-        res.redirect("/login");
-    });
-});
+router.get("/",checkLogin,(req,res)=>{
+res.sendFile(path.join(__dirname,"../index.html"))
+})
 
-module.exports = router;
+router.get("/data",checkLogin,(req,res)=>{
+
+db.query("SELECT * FROM makanan",(err,result)=>{
+
+res.json({
+user:req.session.user,
+role:req.session.role,
+data:result
+})
+
+})
+
+})
+
+router.post("/tambah",(req,res)=>{
+
+const nama=req.body.nama_makanan
+const stok=req.body.stok
+const harga=req.body.harga
+
+db.query(
+"INSERT INTO makanan (nama_makanan,stok,harga) VALUES (?,?,?)",
+[nama,stok,harga],
+()=>{
+res.redirect("/")
+})
+
+})
+
+router.get("/hapus/:id",(req,res)=>{
+
+db.query(
+"DELETE FROM makanan WHERE id=?",
+[req.params.id],
+()=>{
+res.redirect("/")
+})
+
+})
+
+router.get("/logout",(req,res)=>{
+req.session.destroy(()=>{
+res.redirect("/login")
+})
+})
+
+module.exports = router

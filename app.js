@@ -1,28 +1,24 @@
-const express = require("express");
-const session = require("express-session");
-const path = require("path");
-const app = express();
+const express = require("express")
+const session = require("express-session")
+const path = require("path")
 
-app.set("view engine", "ejs");
+const app = express()
 
-/* lokasi file view sekarang di folder utama */
-app.set("views", __dirname);
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
 
-/* supaya style.css bisa dibaca dari folder utama */
-app.use(express.static(__dirname));
-
-app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname))
 
 app.use(session({
-    secret: 'inventory-secret-key-123',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { maxAge: 3600000 }
-}));
+secret: "persediaan-secret",
+resave: false,
+saveUninitialized: true
+}))
 
-const makananRoutes = require("./routes/makanan");
-app.use("/", makananRoutes);
+const makananRoutes = require("./routes/makanan")
+
+app.use("/", makananRoutes)
 
 app.listen(3000, () => {
-    console.log("Server berjalan di http://localhost:3000");
-});
+console.log("Server berjalan di http://localhost:3000")
+})
